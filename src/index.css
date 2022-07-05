@@ -1,0 +1,19 @@
+.no-pointer {
+    pointer-events: none;
+}
+
+.modal.show {
+    display: block;
+}
+
+.centered-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.end-content {
+    display: flex;
+    justify-content: end;
+    align-items: end;
+}
