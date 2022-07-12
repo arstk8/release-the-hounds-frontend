@@ -20,9 +20,9 @@ class RemoteStateManager {
     }
 
     #onMessage = event => {
-        const payload = JSON.parse(event['data'])
-        const action = payload['action']
-        const data = payload['data']
+        const payload = JSON.parse(event.data)
+        const action = payload.action
+        const data = payload.data
 
         if ('neighbors' === action) {
             this.setNeighbors(
@@ -53,20 +53,20 @@ class RemoteStateManager {
     #getUpdatedStatus = (previousState, data) => {
         const lookup = new Map(
             data.map(houndsOutData => [
-                houndsOutData['username'],
+                houndsOutData.username,
                 houndsOutData
             ])
         )
         return previousState.map(entry => {
             let newStatus
-            if (lookup.has(entry['name'])) {
+            if (lookup.has(entry.name)) {
                 newStatus = 'Dogs Outside'
-            } else if (entry['status']) {
-                newStatus = entry['status']
+            } else if (entry.status) {
+                newStatus = entry.status
             } else {
                 newStatus = 'Dogs Inside'
             }
-            entry['status'] = newStatus
+            entry.status = newStatus
             return entry
         })
     }
