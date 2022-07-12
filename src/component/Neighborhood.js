@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import Hound from './Hound'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import RemoteStateManager from '../service/RemoteStateManager'
 
 function Neighborhood() {
@@ -8,6 +8,8 @@ function Neighborhood() {
     const user = localStorage.getItem('username')
 
     const [neighbors, setNeighbors] = useState([])
+
+    const releaseHound = useRef()
 
     useEffect(() => {
         const stateManager = RemoteStateManager.create(
@@ -17,9 +19,12 @@ function Neighborhood() {
             setNeighbors
         )
 
+        releaseHound.current = () => {
+            stateManager.releaseHound()
+        }
+
         return () => stateManager.disconnect()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [neighborGroup, user])
 
     return (
         <div>
@@ -42,6 +47,8 @@ function Neighborhood() {
                             key={ neighbor.name }
                             user={ neighbor.name }
                             status={ neighbor.status }
+                            isReleasable={ neighbor.name === user }
+                            onReleaseHound={ releaseHound.current }
                         />
                     )
                 }) }

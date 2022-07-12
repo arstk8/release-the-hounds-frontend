@@ -1,11 +1,14 @@
 class RemoteStateManager {
-    constructor(socket, setNeighbors) {
+    constructor(socket, user, setNeighbors) {
         this.socket = socket
+        this.user = user
         this.setNeighbors = setNeighbors
 
         socket.onopen = () => this.#makeServerCall('neighbors')
         socket.onmessage = this.#onMessage
     }
+
+    releaseHound = () => this.#makeServerCall('release')
 
     #makeServerCall = action => {
         const payload = { action: action }
@@ -25,13 +28,25 @@ class RemoteStateManager {
             this.setNeighbors(
                 data.map(neighbor => {
                     return { name: neighbor, status: null }
-                })
+                }).sort(this.#compareNeighbors)
             )
             this.#makeServerCall('status')
         } else if ('status' === action || 'release' === action) {
             this.setNeighbors(previousState => {
                 return this.#getUpdatedStatus(previousState, data)
             })
+        }
+    }
+
+    #compareNeighbors = (lhs, rhs) => {
+        const lhsUser = lhs.name
+        const rhsUser = rhs.name
+        if (lhsUser === this.user) {
+            return -1
+        } else if (rhsUser === this.user) {
+            return 1
+        } else {
+            return lhsUser.localeCompare(rhsUser)
         }
     }
 
@@ -62,7 +77,7 @@ class RemoteStateManager {
         const requestUrl = `${url}?neighborGroup=${encodedRoomCode}&username=${encodedUser}`
         const socket = new WebSocket(requestUrl)
 
-        return new RemoteStateManager(socket, setNeighbors)
+        return new RemoteStateManager(socket, user, setNeighbors)
     }
 }
 
