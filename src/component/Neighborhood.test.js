@@ -17,10 +17,14 @@ describe('hound updates', () => {
     let closeMock
     let sendMock
 
+    let mockDate = +new Date(2022, 6, 12)
+
     beforeEach(() => {
         localStore = {
             username: 'Oliver'
         }
+
+        global.Date.now = jest.fn().mockImplementation(() => mockDate)
 
         localStorage.__proto__.getItem = jest.fn().mockImplementation(key => {
             return key in localStore ? localStore[key] : null
@@ -79,8 +83,9 @@ describe('hound updates', () => {
             messageSpy({
                 data: '{"action": "neighbors", "data": ["Oliver", "Ellie", "Sophie"]}'
             })
+            const timeToLiveInFuture = mockDate / 1000 + 1
             messageSpy({
-                data: '{"action": "status", "data": [{"username": "Ellie", "timeToLive": 1657480215}]}'
+                data: `{"action": "status", "data": [{"username": "Ellie", "timeToLive": ${timeToLiveInFuture}}]}`
             })
         })
 
@@ -109,8 +114,9 @@ describe('hound updates', () => {
             messageSpy({
                 data: '{"action": "neighbors", "data": ["Oliver", "Ellie", "Sophie"]}'
             })
+            const timeToLiveInFuture = mockDate / 1000 + 1
             messageSpy({
-                data: '{"action": "status", "data": [{"username": "Ellie", "timeToLive": 1657480215}]}'
+                data: `{"action": "status", "data": [{"username": "Ellie", "timeToLive": ${timeToLiveInFuture}}]}`
             })
 
         })

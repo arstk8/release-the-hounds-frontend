@@ -26,15 +26,43 @@ class RemoteStateManager {
 
         if ('neighbors' === action) {
             this.setNeighbors(
-                data.map(neighbor => {
-                    return { name: neighbor, status: null }
-                }).sort(this.#compareNeighbors)
+                data
+                    .map(neighbor => {
+                        return {
+                            name: neighbor,
+                            status: null,
+                            timeToLive: null
+                        }
+                    })
+                    .sort(this.#compareNeighbors)
             )
             this.#makeServerCall('status')
         } else if ('status' === action || 'release' === action) {
             this.setNeighbors(previousState => {
                 return this.#getUpdatedStatus(previousState, data)
             })
+
+            let currentTimeSeconds = Date.now() / 1000
+            const timesToLive = data.map(entry => entry.timeToLive)
+            const earliestTimeToLive = Math.min(...timesToLive)
+
+            if (this.timeToLiveChecker) {
+                clearTimeout(this.timeToLiveChecker)
+            }
+
+            const timeout = Math.max(0, earliestTimeToLive - currentTimeSeconds)
+            this.timeToLiveChecker = setTimeout(() => {
+                this.setNeighbors(previousState => {
+                    currentTimeSeconds = Date.now() / 1000
+                    return previousState.map(entry => {
+                        if (entry.timeToLive < currentTimeSeconds) {
+                            entry.status = 'Dogs Inside'
+                            entry.timeToLive = null
+                        }
+                        return entry
+                    })
+                })
+            }, timeout * 1000)
         }
     }
 
@@ -52,23 +80,37 @@ class RemoteStateManager {
 
     #getUpdatedStatus = (previousState, data) => {
         const lookup = new Map(
-            data.map(houndsOutData => [
-                houndsOutData.username,
-                houndsOutData
-            ])
+            data.map(houndsOutData => [houndsOutData.username, houndsOutData])
         )
+
         return previousState.map(entry => {
+            const newData = lookup.get(entry.name)
+
             let newStatus
-            if (lookup.has(entry.name)) {
+            if (newData && RemoteStateManager.#satisfiesTimeToLive(newData)) {
                 newStatus = 'Dogs Outside'
             } else if (entry.status) {
                 newStatus = entry.status
             } else {
                 newStatus = 'Dogs Inside'
             }
+
+            let newTimeToLive
+            if (newData) {
+                newTimeToLive = newData.timeToLive
+            } else {
+                newTimeToLive = entry.timeToLive
+            }
+
             entry.status = newStatus
+            entry.timeToLive = newTimeToLive
             return entry
         })
+    }
+
+    static #satisfiesTimeToLive(entry) {
+        const epochSeconds = Date.now() / 1000
+        return entry.timeToLive == null || entry.timeToLive >= epochSeconds
     }
 
     static create(url, roomCode, user, setNeighbors) {
