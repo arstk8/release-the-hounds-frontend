@@ -4,7 +4,6 @@ import { Status } from '../model/Status'
 describe('remote state management', () => {
     let openSpy
     let messageSpy
-    let closeMock
     let sendMock
     let urlSpy
     let setNeighborsMock
@@ -12,13 +11,11 @@ describe('remote state management', () => {
     let mockDateSeconds = new Date(2022, 6, 12) / 1000
 
     beforeEach(() => {
-        closeMock = jest.fn()
         sendMock = jest.fn()
 
         global.Date.now = jest.fn().mockImplementation(() => mockDateSeconds * 1000)
 
         global.WebSocket = class {
-            close = closeMock
             send = sendMock
 
             constructor(url) {
@@ -129,6 +126,33 @@ describe('remote state management', () => {
             { name: 'Ellie', status: Status.DOGS_OUTSIDE, timeToLive: timeToLiveInFuture },
             { name: 'Sophie', status: Status.DOGS_INSIDE, timeToLive: null }
         ])
+    })
+
+    function callSetNeighborsResult(sequence, previousState) {
+        const stateUpdateFunction = setNeighborsMock.mock.calls[sequence][0]
+        return stateUpdateFunction(previousState)
+    }
+})
+
+describe('ttl behavior', () => {
+
+    let messageSpy
+    let setNeighborsMock
+
+    let mockDateSeconds = new Date(2022, 6, 12) / 1000
+
+    beforeEach(() => {
+        global.Date.now = jest.fn().mockImplementation(() => mockDateSeconds * 1000)
+
+        global.WebSocket = class {
+            // noinspection JSUnusedGlobalSymbols
+            set onmessage(onmessage) {
+                messageSpy = onmessage
+            }
+        }
+        setNeighborsMock = jest.fn()
+
+        RemoteStateManager.create('wss://baseurl.com', 'some room', 'Sir barks a lot', setNeighborsMock)
     })
 
     it('sets an incoming "outside" hound\'s status to "inside" if the timeToLive has passed', async () => {
