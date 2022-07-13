@@ -46,7 +46,7 @@ function Neighborhood() {
                         <Hound
                             key={ neighbor.name }
                             user={ neighbor.name }
-                            status={ neighbor.status }
+                            status={ neighbor.status && neighbor.status.toString() }
                             isReleasable={ neighbor.name === user }
                             onReleaseHound={ releaseHound.current }
                         />

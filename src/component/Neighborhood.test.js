@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import Neighborhood from './Neighborhood'
 import { MemoryRouter, Route } from 'react-router-dom'
 import { act } from 'react-dom/test-utils'
+import { Status } from '../model/Status'
 
 describe('hound updates', () => {
     const componentJsx = (
@@ -63,16 +64,16 @@ describe('hound updates', () => {
 
         expect(hounds[0]).toHaveTextContent('Oliver')
         expect(hounds[0]).not.toHaveTextContent('Release')
-        expect(hounds[0]).not.toHaveTextContent('Dogs Outside')
-        expect(hounds[0]).not.toHaveTextContent('Dogs Inside')
+        expect(hounds[0]).not.toHaveTextContent(Status.DOGS_OUTSIDE.toString())
+        expect(hounds[0]).not.toHaveTextContent(Status.DOGS_INSIDE.toString())
 
         expect(hounds[1]).toHaveTextContent('Ellie')
-        expect(hounds[1]).not.toHaveTextContent('Dogs Outside')
-        expect(hounds[1]).not.toHaveTextContent('Dogs Inside')
+        expect(hounds[1]).not.toHaveTextContent(Status.DOGS_OUTSIDE.toString())
+        expect(hounds[1]).not.toHaveTextContent(Status.DOGS_INSIDE.toString())
 
         expect(hounds[2]).toHaveTextContent('Sophie')
-        expect(hounds[2]).not.toHaveTextContent('Dogs Outside')
-        expect(hounds[2]).not.toHaveTextContent('Dogs Inside')
+        expect(hounds[2]).not.toHaveTextContent(Status.DOGS_OUTSIDE.toString())
+        expect(hounds[2]).not.toHaveTextContent(Status.DOGS_INSIDE.toString())
     })
 
     it('should be able to render hound statuses', async () => {
@@ -94,16 +95,16 @@ describe('hound updates', () => {
 
         expect(hounds[0]).toHaveTextContent('Oliver')
         expect(hounds[0]).toHaveTextContent('Release')
-        expect(hounds[0]).not.toHaveTextContent('Dogs Outside')
-        expect(hounds[0]).toHaveTextContent('Dogs Inside')
+        expect(hounds[0]).not.toHaveTextContent(Status.DOGS_OUTSIDE.toString())
+        expect(hounds[0]).toHaveTextContent(Status.DOGS_INSIDE.toString())
 
         expect(hounds[1]).toHaveTextContent('Ellie')
-        expect(hounds[1]).toHaveTextContent('Dogs Outside')
-        expect(hounds[1]).not.toHaveTextContent('Dogs Inside')
+        expect(hounds[1]).toHaveTextContent(Status.DOGS_OUTSIDE.toString())
+        expect(hounds[1]).not.toHaveTextContent(Status.DOGS_INSIDE.toString())
 
         expect(hounds[2]).toHaveTextContent('Sophie')
-        expect(hounds[2]).not.toHaveTextContent('Dogs Outside')
-        expect(hounds[2]).toHaveTextContent('Dogs Inside')
+        expect(hounds[2]).not.toHaveTextContent(Status.DOGS_OUTSIDE.toString())
+        expect(hounds[2]).toHaveTextContent(Status.DOGS_INSIDE.toString())
     })
 
     it('should be able to release the hounds for the current user', async () => {
