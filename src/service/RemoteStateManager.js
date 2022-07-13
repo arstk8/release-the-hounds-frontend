@@ -1,15 +1,22 @@
 import { MessageHandler } from './MessageHandler'
 
 class RemoteStateManager {
+    #requestUrl
     #socket
     #messageHandler
+    #stayDead = false
 
-    constructor(socket, user, setNeighbors) {
-        this.#socket = socket
+    constructor(requestUrl, user, setNeighbors) {
+        this.#requestUrl = requestUrl
+        this.#connect()
         this.#messageHandler = new MessageHandler(user, setNeighbors)
+    }
 
-        socket.onopen = this.#onOpen
-        socket.onmessage = this.#onMessage
+    #connect = () => {
+        this.#socket = new WebSocket(this.#requestUrl)
+        this.#socket.onopen = this.#onOpen
+        this.#socket.onclose = this.#onClose
+        this.#socket.onmessage = this.#onMessage
     }
 
     releaseHound = () => this.#makeServerCall('release')
@@ -20,11 +27,18 @@ class RemoteStateManager {
     }
 
     disconnect = () => {
+        this.#stayDead = true
         this.#socket.close()
     }
 
     #onOpen = () => {
         this.#makeServerCall('neighbors')
+    }
+
+    #onClose = () => {
+        if (!this.#stayDead) {
+            this.#connect()
+        }
     }
 
     #onMessage = event => {
@@ -39,9 +53,8 @@ class RemoteStateManager {
         const encodedRoomCode = encodeURIComponent(roomCode)
         const encodedUser = encodeURIComponent(user)
         const requestUrl = `${url}?neighborGroup=${encodedRoomCode}&username=${encodedUser}`
-        const socket = new WebSocket(requestUrl)
 
-        return new RemoteStateManager(socket, user, setNeighbors)
+        return new RemoteStateManager(requestUrl, user, setNeighbors)
     }
 }
 

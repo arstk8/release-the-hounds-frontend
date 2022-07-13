@@ -37,12 +37,10 @@ describe('hound updates', () => {
             close = closeMock
             send = sendMock
 
-            // noinspection JSUnusedGlobalSymbols
             set onopen(onopen) {
                 openSpy = onopen
             }
 
-            // noinspection JSUnusedGlobalSymbols
             set onmessage(onmessage) {
                 messageSpy = onmessage
             }

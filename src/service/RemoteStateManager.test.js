@@ -1,11 +1,55 @@
 import RemoteStateManager from './RemoteStateManager'
 import { Status } from '../model/Status'
 
-describe('remote state management', () => {
+describe('connection management', () => {
+    let closeMock
+    let webSocketCreationFunction = jest.fn()
+    let urlSpy
+    let closeSpy
+
+    let remoteStateManager
+
+    beforeEach(() => {
+        closeMock = jest.fn()
+
+        global.WebSocket = class {
+            constructor(url) {
+                urlSpy = url
+                webSocketCreationFunction()
+            }
+
+            close = closeMock.mockImplementation(() => {
+                closeSpy()
+            })
+
+            set onclose(onclose) {
+                closeSpy = onclose
+            }
+        }
+
+        remoteStateManager = RemoteStateManager.create(
+            'wss://baseurl.com',
+            'some room',
+            'Sir barks a lot',
+            jest.fn()
+        )
+    })
+
+    it('uses the proper url to connect', () => {
+        expect(urlSpy).toBe('wss://baseurl.com?neighborGroup=some%20room&username=Sir%20barks%20a%20lot')
+    })
+
+    it('closes the websocket upon disconnect', () => {
+        remoteStateManager.disconnect()
+        expect(closeMock).toHaveBeenCalled()
+        expect(webSocketCreationFunction).toHaveBeenCalledTimes(1)
+    })
+})
+
+describe('message handling', () => {
     let openSpy
     let messageSpy
     let sendMock
-    let urlSpy
     let setNeighborsMock
 
     let mockDateSeconds = new Date(2022, 6, 12) / 1000
@@ -18,16 +62,10 @@ describe('remote state management', () => {
         global.WebSocket = class {
             send = sendMock
 
-            constructor(url) {
-                urlSpy = url
-            }
-
-            // noinspection JSUnusedGlobalSymbols
             set onopen(onopen) {
                 openSpy = onopen
             }
 
-            // noinspection JSUnusedGlobalSymbols
             set onmessage(onmessage) {
                 messageSpy = onmessage
             }
@@ -35,10 +73,6 @@ describe('remote state management', () => {
         setNeighborsMock = jest.fn()
 
         RemoteStateManager.create('wss://baseurl.com', 'some room', 'Sir barks a lot', setNeighborsMock)
-    })
-
-    it('uses the proper url to connect', () => {
-        expect(urlSpy).toBe('wss://baseurl.com?neighborGroup=some%20room&username=Sir%20barks%20a%20lot')
     })
 
     it('fetches the current neighbors upon connecting', () => {
@@ -93,8 +127,8 @@ describe('remote state management', () => {
         const timeToLiveInFuture = mockDateSeconds + 60
         messageSpy({
             data: `{"action": "status", "data": [
-                {"username": "Sir barks a lot", "timeToLive": ${ timeToLiveInFuture }}, 
-                {"username": "Sophie", "timeToLive": ${ timeToLiveInFuture }}
+                {"username": "Sir barks a lot", "timeToLive": ${timeToLiveInFuture}}, 
+                {"username": "Sophie", "timeToLive": ${timeToLiveInFuture}}
             ]}`
         })
 
@@ -116,7 +150,7 @@ describe('remote state management', () => {
 
         const timeToLiveInFuture = mockDateSeconds + 60
         messageSpy({
-            data: `{"action": "release", "data": [{"username": "Ellie", "timeToLive": ${ timeToLiveInFuture }}]}`
+            data: `{"action": "release", "data": [{"username": "Ellie", "timeToLive": ${timeToLiveInFuture}}]}`
         })
 
         const updateResult = callSetNeighborsResult(0, previousState)
@@ -135,7 +169,6 @@ describe('remote state management', () => {
 })
 
 describe('ttl behavior', () => {
-
     let messageSpy
     let setNeighborsMock
 
@@ -145,7 +178,6 @@ describe('ttl behavior', () => {
         global.Date.now = jest.fn().mockImplementation(() => mockDateSeconds * 1000)
 
         global.WebSocket = class {
-            // noinspection JSUnusedGlobalSymbols
             set onmessage(onmessage) {
                 messageSpy = onmessage
             }
@@ -164,7 +196,7 @@ describe('ttl behavior', () => {
 
         const timeToLiveInPast = mockDateSeconds - 60
         messageSpy({
-            data: `{"action": "release", "data": [{"username": "Ellie", "timeToLive": ${ timeToLiveInPast }}]}`
+            data: `{"action": "release", "data": [{"username": "Ellie", "timeToLive": ${timeToLiveInPast}}]}`
         })
 
         const previousUpdateResult = callSetNeighborsResult(0, previousState)
@@ -188,7 +220,7 @@ describe('ttl behavior', () => {
 
         const timeToLiveBarelyInFuture = mockDateSeconds + 1
         messageSpy({
-            data: `{"action": "release", "data": [{"username": "Ellie", "timeToLive": ${ timeToLiveBarelyInFuture }}]}`
+            data: `{"action": "release", "data": [{"username": "Ellie", "timeToLive": ${timeToLiveBarelyInFuture}}]}`
         })
 
         const previousUpdateResult = callSetNeighborsResult(0, previousState)
@@ -213,12 +245,12 @@ describe('ttl behavior', () => {
 
         const timeToLiveBarelyInFuture = mockDateSeconds + 1
         messageSpy({
-            data: `{"action": "release", "data": [{"username": "Ellie", "timeToLive": ${ timeToLiveBarelyInFuture }}]}`
+            data: `{"action": "release", "data": [{"username": "Ellie", "timeToLive": ${timeToLiveBarelyInFuture}}]}`
         })
 
         const timeToLiveThatIsPastNextTTLCheck = mockDateSeconds + 2
         messageSpy({
-            data: `{"action": "release", "data": [{"username": "Sophie", "timeToLive": ${ timeToLiveThatIsPastNextTTLCheck }}]}`
+            data: `{"action": "release", "data": [{"username": "Sophie", "timeToLive": ${timeToLiveThatIsPastNextTTLCheck}}]}`
         })
 
         const previousUpdateResult = callSetNeighborsResult(0, previousState)
@@ -248,8 +280,8 @@ describe('ttl behavior', () => {
         const timeToLiveThatIsPastNextTTLCheck = mockDateSeconds + 2
         messageSpy({
             data: `{"action": "status", "data": [
-            {"username": "Ellie", "timeToLive": ${ timeToLiveBarelyInFuture }},
-            {"username": "Sophie", "timeToLive": ${ timeToLiveThatIsPastNextTTLCheck }}
+            {"username": "Ellie", "timeToLive": ${timeToLiveBarelyInFuture}},
+            {"username": "Sophie", "timeToLive": ${timeToLiveThatIsPastNextTTLCheck}}
             ]}`
         })
 
@@ -280,7 +312,7 @@ describe('ttl behavior', () => {
 
         const timeToLiveInPast = mockDateSeconds - 60
         messageSpy({
-            data: `{"action": "release", "data": [{"username": "Ellie", "timeToLive": ${ timeToLiveInPast }}]}`
+            data: `{"action": "release", "data": [{"username": "Ellie", "timeToLive": ${timeToLiveInPast}}]}`
         })
 
         const previousUpdateResult = callSetNeighborsResult(0, previousState)
