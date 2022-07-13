@@ -39,7 +39,7 @@ export class MessageHandler {
         this.#setNeighborsWithTTLCheck(previousState => {
             const currentTimeSeconds = TimeToLiveTracker.getCurrentTimeSeconds()
             return previousState.map(entry => {
-                if (entry.timeToLive && entry.timeToLive < currentTimeSeconds) {
+                if (entry.timeToLive < currentTimeSeconds) {
                     entry.status = Status.DOGS_INSIDE
                     entry.timeToLive = null
                 }
@@ -69,18 +69,12 @@ export class MessageHandler {
             const newData = lookup.get(entry.name)
 
             let newStatus
-            if (newData) {
-                newStatus = Status.DOGS_OUTSIDE
-            } else if (entry.status) {
-                newStatus = entry.status
-            } else {
-                newStatus = Status.DOGS_INSIDE
-            }
-
             let newTimeToLive
             if (newData) {
+                newStatus = newData.timeToLive ? Status.DOGS_OUTSIDE : Status.DOGS_INSIDE
                 newTimeToLive = newData.timeToLive
             } else {
+                newStatus = entry.status || Status.DOGS_INSIDE
                 newTimeToLive = entry.timeToLive
             }
 

@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom'
 import Hound from './Hound'
 import { useEffect, useRef, useState } from 'react'
 import RemoteStateManager from '../service/RemoteStateManager'
+import { Status } from '../model/Status'
 
 function Neighborhood() {
     const { neighborGroup } = useParams()
@@ -19,8 +20,12 @@ function Neighborhood() {
             setNeighbors
         )
 
-        releaseHound.current = () => {
-            stateManager.releaseHound()
+        releaseHound.current = status => {
+            if (Status.DOGS_INSIDE === status) {
+                stateManager.releaseHound()
+            } else {
+                stateManager.unreleaseHound()
+            }
         }
 
         return () => stateManager.disconnect()
@@ -46,7 +51,7 @@ function Neighborhood() {
                         <Hound
                             key={ neighbor.name }
                             user={ neighbor.name }
-                            status={ neighbor.status && neighbor.status.toString() }
+                            status={ neighbor.status && neighbor.status }
                             isReleasable={ neighbor.name === user }
                             onReleaseHound={ releaseHound.current }
                         />

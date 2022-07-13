@@ -1,12 +1,9 @@
 export class Status {
-    static DOGS_INSIDE = new Status('Dogs Inside')
-    static DOGS_OUTSIDE = new Status('Dogs Outside')
+    static DOGS_INSIDE = new Status('Dogs Inside', 'Release')
+    static DOGS_OUTSIDE = new Status('Dogs Outside', 'Bring In')
 
-    constructor(description) {
+    constructor(description, actionDescription) {
         this.description = description
-    }
-
-    toString() {
-        return this.description
+        this.actionDescription = actionDescription
     }
 }

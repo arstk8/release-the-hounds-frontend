@@ -1,10 +1,11 @@
+import { Status } from '../model/Status'
+
 function Hound(props) {
     const statusExists = props.status !== null
-    const buttonClass =
-        'Dogs Outside' === props.status ? 'btn-danger' : 'btn-primary'
+    const buttonClass = Status.DOGS_OUTSIDE === props.status ? 'btn-danger' : 'btn-primary'
 
     function releaseClickHandler() {
-        props.onReleaseHound(props.user)
+        props.onReleaseHound(props.status)
     }
 
     return (
@@ -13,25 +14,19 @@ function Hound(props) {
                 <div className="card card-body">
                     <div className="row">
                         <div className="col">
-                            <h5 className="card-title">{props.user}</h5>
+                            <h5 className="card-title">{ props.user }</h5>
                         </div>
-                        {statusExists && (
+                        { statusExists && (
                             <div className="col end-content">
-                                {props.isReleasable && (
-                                    <button
-                                        className="btn btn-danger mx-2"
-                                        onClick={releaseClickHandler}
-                                    >
-                                        Release
+                                { props.isReleasable && (
+                                    <button className="btn btn-danger mx-2" onClick={ releaseClickHandler }>
+                                        { props.status.actionDescription }
                                     </button>
-                                )}
+                                ) }
                                 <button
-                                    className={`btn ${buttonClass} no-pointer`}
-                                >
-                                    {props.status}
-                                </button>
+                                    className={ `btn ${ buttonClass } no-pointer` }>{ props.status.description }</button>
                             </div>
-                        )}
+                        ) }
                     </div>
                 </div>
             </div>

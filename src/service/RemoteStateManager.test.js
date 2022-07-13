@@ -188,8 +188,9 @@ describe('ttl behavior', () => {
     })
 
     it('sets an incoming "outside" hound\'s status to "inside" if the timeToLive has passed', async () => {
+        const timeToLiveWellInFuture = mockDateSeconds + 1000
         const previousState = [
-            { name: 'Sir barks a lot', status: Status.DOGS_OUTSIDE, timeToLive: null },
+            { name: 'Sir barks a lot', status: Status.DOGS_OUTSIDE, timeToLive: timeToLiveWellInFuture },
             { name: 'Ellie', status: Status.DOGS_INSIDE, timeToLive: null },
             { name: 'Sophie', status: Status.DOGS_INSIDE, timeToLive: null }
         ]
@@ -204,7 +205,29 @@ describe('ttl behavior', () => {
         const updateResult = callSetNeighborsResult(1, previousUpdateResult)
 
         expect(updateResult).toEqual([
-            { name: 'Sir barks a lot', status: Status.DOGS_OUTSIDE, timeToLive: null },
+            { name: 'Sir barks a lot', status: Status.DOGS_OUTSIDE, timeToLive: timeToLiveWellInFuture },
+            { name: 'Ellie', status: Status.DOGS_INSIDE, timeToLive: null },
+            { name: 'Sophie', status: Status.DOGS_INSIDE, timeToLive: null }
+        ])
+    })
+
+    it('sets an incoming "outside" hound\'s status to "inside" if the timeToLive has been cleared', async () => {
+        const timeToLiveWellInFuture = mockDateSeconds + 1000
+        const previousState = [
+            { name: 'Sir barks a lot', status: Status.DOGS_OUTSIDE, timeToLive: timeToLiveWellInFuture },
+            { name: 'Ellie', status: Status.DOGS_INSIDE, timeToLive: null },
+            { name: 'Sophie', status: Status.DOGS_INSIDE, timeToLive: null }
+        ]
+
+        messageSpy({
+            data: `{"action": "release", "data": [{"username": "Sir barks a lot", "timeToLive": null}]}`
+        })
+
+        const updateResult = callSetNeighborsResult(0, previousState)
+        await pause(0)
+
+        expect(updateResult).toEqual([
+            { name: 'Sir barks a lot', status: Status.DOGS_INSIDE, timeToLive: null },
             { name: 'Ellie', status: Status.DOGS_INSIDE, timeToLive: null },
             { name: 'Sophie', status: Status.DOGS_INSIDE, timeToLive: null }
         ])

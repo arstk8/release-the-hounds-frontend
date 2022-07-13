@@ -21,6 +21,8 @@ class RemoteStateManager {
 
     releaseHound = () => this.#makeServerCall('release')
 
+    unreleaseHound = () => this.#makeServerCall('unrelease')
+
     #makeServerCall = action => {
         const payload = { action: action }
         this.#socket.send(JSON.stringify(payload))

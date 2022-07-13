@@ -62,16 +62,17 @@ describe('hound updates', () => {
 
         expect(hounds[0]).toHaveTextContent('Oliver')
         expect(hounds[0]).not.toHaveTextContent('Release')
-        expect(hounds[0]).not.toHaveTextContent(Status.DOGS_OUTSIDE.toString())
-        expect(hounds[0]).not.toHaveTextContent(Status.DOGS_INSIDE.toString())
+        expect(hounds[0]).not.toHaveTextContent('Bring In')
+        expect(hounds[0]).not.toHaveTextContent(Status.DOGS_OUTSIDE.description)
+        expect(hounds[0]).not.toHaveTextContent(Status.DOGS_INSIDE.description)
 
         expect(hounds[1]).toHaveTextContent('Ellie')
-        expect(hounds[1]).not.toHaveTextContent(Status.DOGS_OUTSIDE.toString())
-        expect(hounds[1]).not.toHaveTextContent(Status.DOGS_INSIDE.toString())
+        expect(hounds[1]).not.toHaveTextContent(Status.DOGS_OUTSIDE.description)
+        expect(hounds[1]).not.toHaveTextContent(Status.DOGS_INSIDE.description)
 
         expect(hounds[2]).toHaveTextContent('Sophie')
-        expect(hounds[2]).not.toHaveTextContent(Status.DOGS_OUTSIDE.toString())
-        expect(hounds[2]).not.toHaveTextContent(Status.DOGS_INSIDE.toString())
+        expect(hounds[2]).not.toHaveTextContent(Status.DOGS_OUTSIDE.description)
+        expect(hounds[2]).not.toHaveTextContent(Status.DOGS_INSIDE.description)
     })
 
     it('should be able to render hound statuses', async () => {
@@ -93,16 +94,17 @@ describe('hound updates', () => {
 
         expect(hounds[0]).toHaveTextContent('Oliver')
         expect(hounds[0]).toHaveTextContent('Release')
-        expect(hounds[0]).not.toHaveTextContent(Status.DOGS_OUTSIDE.toString())
-        expect(hounds[0]).toHaveTextContent(Status.DOGS_INSIDE.toString())
+        expect(hounds[0]).not.toHaveTextContent('Bring In')
+        expect(hounds[0]).not.toHaveTextContent(Status.DOGS_OUTSIDE.description)
+        expect(hounds[0]).toHaveTextContent(Status.DOGS_INSIDE.description)
 
         expect(hounds[1]).toHaveTextContent('Ellie')
-        expect(hounds[1]).toHaveTextContent(Status.DOGS_OUTSIDE.toString())
-        expect(hounds[1]).not.toHaveTextContent(Status.DOGS_INSIDE.toString())
+        expect(hounds[1]).toHaveTextContent(Status.DOGS_OUTSIDE.description)
+        expect(hounds[1]).not.toHaveTextContent(Status.DOGS_INSIDE.description)
 
         expect(hounds[2]).toHaveTextContent('Sophie')
-        expect(hounds[2]).not.toHaveTextContent(Status.DOGS_OUTSIDE.toString())
-        expect(hounds[2]).toHaveTextContent(Status.DOGS_INSIDE.toString())
+        expect(hounds[2]).not.toHaveTextContent(Status.DOGS_OUTSIDE.description)
+        expect(hounds[2]).toHaveTextContent(Status.DOGS_INSIDE.description)
     })
 
     it('should be able to release the hounds for the current user', async () => {
@@ -123,6 +125,25 @@ describe('hound updates', () => {
         fireEvent.click(screen.getByText('Release'))
 
         expect(sendMock).toHaveBeenCalledWith(JSON.stringify({action: 'release'}))
+    })
+
+    it('should be able to bring the hounds in for the current user', async () => {
+        render(componentJsx)
+
+        await act(() => {
+            openSpy()
+            messageSpy({
+                data: '{"action": "neighbors", "data": ["Oliver", "Ellie", "Sophie"]}'
+            })
+            const timeToLiveInFuture = mockDate / 1000 + 1
+            messageSpy({
+                data: `{"action": "status", "data": [{"username": "Oliver", "timeToLive": ${timeToLiveInFuture}}, {"username": "Ellie", "timeToLive": ${timeToLiveInFuture}}]}`
+            })
+        })
+
+        fireEvent.click(screen.getByText('Bring In'))
+
+        expect(sendMock).toHaveBeenCalledWith(JSON.stringify({action: 'unrelease'}))
     })
 
     it('should disconnect websocket when component unmounts', async () => {
