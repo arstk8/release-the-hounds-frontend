@@ -1,16 +1,19 @@
 import Home from './component/Home'
-import { Route, Switch } from 'react-router-dom'
+import { Redirect, Route, Switch } from 'react-router-dom'
 import Neighborhood from './component/Neighborhood'
 
 function App() {
     return (
         <div>
             <Switch>
+                <Route path="/room/:neighborGroup" exact>
+                    <Neighborhood />
+                </Route>
                 <Route path="/" exact>
                     <Home />
                 </Route>
-                <Route path="/:neighborGroup">
-                    <Neighborhood />
+                <Route path="*">
+                    <Redirect to='/'/>
                 </Route>
             </Switch>
         </div>

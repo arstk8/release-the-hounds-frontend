@@ -22,16 +22,6 @@ function Home() {
             <div className="row my-2">
                 <div className="col centered-content">
                     <button className="btn btn-primary" onClick={clickHandler}>
-                        Create a room
-                    </button>
-                </div>
-            </div>
-            <div className="row my-2">
-                <div className="col centered-content">
-                    <button
-                        className="btn btn-secondary"
-                        onClick={clickHandler}
-                    >
                         Join a room
                     </button>
                 </div>

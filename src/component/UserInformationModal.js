@@ -9,7 +9,7 @@ function UserInformationModal(props) {
     function submitHandler(event) {
         event.preventDefault()
         localStorage.setItem('username', name.current.value)
-        history.push(`/${ roomCode.current.value }`)
+        history.push(`/room/${ roomCode.current.value }`)
     }
 
     const roomCode = useRef()
