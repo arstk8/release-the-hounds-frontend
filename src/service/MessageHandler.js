@@ -18,7 +18,7 @@ export class MessageHandler {
 
         if ('neighbors' === action) {
             this.#setInitialNeighbors(data)
-        } else if ('status' === action || 'release' === action) {
+        } else if ('status' === action || 'release' === action || 'unrelease' === action) {
             this.#setNeighborsWithTTLCheck(previousState => {
                 return this.#getUpdatedStatus(previousState, data)
             })
